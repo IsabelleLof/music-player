@@ -1,13 +1,16 @@
-//import { useState } from 'react'
-import './App.css'
+import { useEffect } from "react";
 
-function App () {
-  //const [count, setCount] = useState(0)
+export default function App() {
+  useEffect(() => {
+    async function fetchData() {
+      const res = await fetch(`/api/search?q=coldplay`);
+      const data = await res.json();
+      console.log(data);
+    }
 
-  return (
-    <>
-    </>
-  )
+    fetchData();
+  }, []);
+
+  return <h1>Music Player</h1>;
 }
 
-export default App
