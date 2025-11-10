@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
-import { useAudio } from "react-use";
+import { useAudio, useLocalStorage } from "react-use";
 import "./App.css";
 
 type DeezerTrack = {
   id: number;
   title: string;
-  preview: string;         // 30s mp3
-  duration: number;        // sekunder
+  preview: string;
+  duration: number;
   artist: { name: string };
   album: { cover: string };
 };
 
 export default function App() {
   const [track, setTrack] = useState<DeezerTrack | null>(null);
+  // Spara volym i localStorage (default = 0.7)
+  const [volume, setVolume] = useLocalStorage("volume", 0.7);
 
   useEffect(() => {
     async function fetchData() {
@@ -24,16 +26,24 @@ export default function App() {
     fetchData();
   }, []);
 
+  // useAudio spelar preview-ljudet
   const [audio, state, controls] = useAudio(
     track?.preview
       ? { src: track.preview, autoPlay: false, preload: "metadata" }
       : { src: "" }
   );
 
+  // Synka volym med audio-elementet
+  useEffect(() => {
+    controls.volume(volume);
+  }, [volume, controls]);
+
   const fmt = (s: number | undefined) => {
     if (!Number.isFinite(s)) return "0:00";
     const m = Math.floor((s as number) / 60);
-    const sec = Math.floor((s as number) % 60).toString().padStart(2, "0");
+    const sec = Math.floor((s as number) % 60)
+      .toString()
+      .padStart(2, "0");
     return `${m}:${sec}`;
   };
 
@@ -69,12 +79,22 @@ export default function App() {
             <button onClick={controls.pause}>Pause</button>
           </div>
 
-          {/* useAudio returnerar ett färdigt <audio>-element */}
+          {/* Ny: Volymkontroll */}
+          <div className="volume">
+            <label>Volym: {Math.round(volume * 100)}%</label>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={volume}
+              onChange={(e) => setVolume(Number(e.target.value))}
+            />
+          </div>
+
           <div className="sr-only">{audio}</div>
         </div>
       )}
     </div>
   );
 }
-
-
